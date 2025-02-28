@@ -1,3 +1,10 @@
+# Environmental variables like API and Google Credentials
 .env
+*.json
+
+# Virtual Environment
 agent
-*/pycache
+
+
+*__pycache__
+test.py

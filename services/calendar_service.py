@@ -1,19 +1,18 @@
 from typing import Dict, Optional
 from datetime import datetime, timedelta
-from langchain.tools import GoogleCalendarCreateTool
+from langchain_google_community.calendar.create_event import CalendarCreateEvent
 from langchain.agents import AgentType, initialize_agent
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from config.config import Config
 
 class CalendarService:
     def __init__(self):
-        # Initialize LangChain's Google Calendar tool
-        self.calendar_tool = GoogleCalendarCreateTool(
+        self.calendar_tool = CalendarCreateEvent(
             credentials_path=Config.GOOGLE_CALENDAR_CREDENTIALS
         )
         
         # Initialize LLM for processing
-        self.llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+        self.llm = ChatOpenAI(temperature=0, model="sonar")
         
         # Create an agent that can use the calendar tool
         self.agent = initialize_agent(
@@ -36,7 +35,6 @@ class CalendarService:
             Create a calendar event for a {match_details['sport']} match:
             - Teams: {match_details['team1']} vs {match_details['team2']}
             - Date and Time: {match_details['start_time'].isoformat()}
-            - Venue: {match_details.get('venue', 'TBD')}
             - Competition: {match_details.get('competition', '')}
             
             Set a reminder for 24 hours before by email and 30 minutes before by popup.
@@ -46,15 +44,12 @@ class CalendarService:
             response = self.agent.run(event_description)
             
             # Process the agent's response
-            return self._process_agent_response(response)
+            return self.process_agent_response(response)
             
         except Exception as e:
             raise Exception(f"Failed to schedule match: {str(e)}")
     
-    def _process_agent_response(self, response: str) -> Optional[Dict]:
-        """
-        Process the agent's response to extract event details
-        """
+    def process_agent_response(self, response: str) -> Optional[Dict]:
         try:
             # Use LLM to extract structured data from the response
             prompt = ChatPromptTemplate.from_messages([

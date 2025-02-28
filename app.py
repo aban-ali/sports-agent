@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from config.config import Config
 from services.sports_service import SportsService
 from services.calendar_service import CalendarService
@@ -9,17 +9,15 @@ from agents.match_filter import MatchFilter
 from agents.calendar_agent import CalendarAgent
 from graph.workflow import create_workflow, WorkflowState
 
-# Page config
 st.set_page_config(page_title="Sports Match Scheduler", layout="wide")
 
-# Initialize services and agents
 @st.cache_resource
 def init_services_and_workflow():
-    model = ChatOpenAI(temperature=Config.LLM_TEMPERATURE, openai_api_key=Config.OPENAI_API_KEY, model=Config.LLM_MODEL)
+    # model = ChatOpenAI(temperature=Config.LLM_TEMPERATURE,  model=Config.LLM_MODEL)
     sports_service = SportsService()
     calendar_service = CalendarService()
 
-    query_parser = QueryParser(model)
+    query_parser = QueryParser()
     sports_finder = SportsFinder(sports_service)
     match_filter = MatchFilter()
     calendar_agent = CalendarAgent(calendar_service)
@@ -30,7 +28,7 @@ def init_services_and_workflow():
         match_filter,
         calendar_agent
     )
-
+    print(workflow)
     return workflow
 
 workflow = init_services_and_workflow()
